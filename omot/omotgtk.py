@@ -1,6 +1,6 @@
+# -*- coding: utf-8 -*-
 """
 MPD client to display a slide show of images from the song's directory
-Vladimir Vrzic <vvrzic@gmail.com>
 """
 
 import sys
@@ -24,10 +24,7 @@ class OmotGtk(object):
     - Configuration
     - A GTK+ window
     - A ResizeableImage nested in the window
-    - A list of image files and a pointer to that list
     - Some state attributes (paused, lastdir, fullscreen)
-    - Image cache
-    - A list of acceptable image file extensions
     """
 
     cfg = { 'seconds_between_pictures' : 16,
