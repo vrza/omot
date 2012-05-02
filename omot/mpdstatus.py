@@ -30,7 +30,7 @@ class MpdStatus(object):
         self._state     = None # string, e.g. 'play'
         self._client = MPDClient()
 
-        # Parse config and set _con_id
+        # Parse 'MPD' section of configuration file
         config.parse(self.cfg, config.parser, 'MPD')
         
     def update(self):
@@ -64,16 +64,19 @@ class MpdStatus(object):
 
         # infer absolute covers directory path
         currentfile = self._client.currentsong().get('file')
-        logging.info("Currently playing: %s", currentfile)
-        covers_dir_relative = infer_covers_dir(currentfile)
-        logging.info("Guessing covers dir: %s", covers_dir_relative)
-        self.covers_dir = os.path.join(self.cfg['music_dir'], 
+        if currentfile:
+            logging.info("Currently playing: %s", currentfile)
+            covers_dir_relative = infer_covers_dir(currentfile)
+            logging.info("Guessing covers dir: %s", covers_dir_relative)
+            self.covers_dir = os.path.join(self.cfg['music_dir'], 
                                            covers_dir_relative)
+        else:
+            self.covers_dir = None
 
-        logging.info("Got mpd status update in %s seconds",
+        logging.info("mpd status update took %s seconds",
                      str(time.time() - start))
         self._client.disconnect()
-        return True
+        return self.covers_dir is not None
 
     @property
     def playing(self):
