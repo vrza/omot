@@ -7,7 +7,7 @@ associated with currently played file.
 Configuration
 -------------
 
-Configuration is read from [~/.omotrc] or [~/.omot]. Example configuration:
+Configuration is read from `~/.omotrc` or `~/.omot`. Example configuration:
 
     [Display]
     seconds_between_pictures = 5
