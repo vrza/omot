@@ -45,7 +45,7 @@ def memory_usage():
 def proc_status(VmKey):
     #scale = {'kB': 1024.0, 'mB': 1024.0*1024.0,
     #         'KB': 1024.0, 'MB': 1024.0*1024.0}
-        
+    
     try:
         t = open("/proc/self/status")
         v = t.read()
