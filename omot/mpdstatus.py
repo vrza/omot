@@ -62,9 +62,10 @@ class MpdStatus(object):
         # update playing state 
         self._state = self._client.status().get('state')
 
-        # infer absolute covers directory path
-        currentfile = self._client.currentsong().get('file')
-        if currentfile:
+        self.currentsong = self._client.currentsong()
+        currentfile = self.currentsong.get('file')
+        if self.currentsong and currentfile:
+            # infer absolute covers directory path
             logging.info("Currently playing: %s", currentfile)
             covers_dir_relative = infer_covers_dir(currentfile)
             logging.info("Guessing covers dir: %s", covers_dir_relative)

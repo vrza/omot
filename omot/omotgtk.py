@@ -50,7 +50,6 @@ class OmotGtk(object):
             sys.exit("No screen to display window on (check if DISPLAY has been set)!")
         
         self.window.connect('destroy', gtk.main_quit)
-        self.window.set_title(self.cfg['window_title'])
         self.window.set_default_size(self.cfg['default_width'], self.cfg['default_height'])
         
         self.icon = gtk.gdk.pixbuf_new_from_file(find_path('blade-runner-331x331.png')) #.scale_simple(256, 256, gtk.gdk.INTERP_HYPER)
@@ -63,6 +62,8 @@ class OmotGtk(object):
         
         self.update_file_list()
         
+        self.update_window_title()
+        
         self.window.show_all()
         
         if self.cfg['fullscreen']:
@@ -73,6 +74,22 @@ class OmotGtk(object):
         self.window.connect('key_press_event', self.on_key_press_event)
         
         self.reload_current_image()
+    
+    def update_window_title(self):
+        title = []
+        if mpdstatus.playing and mpdstatus.currentsong:
+            title.append("%s: %s [%s %s] - " 
+                           % ( mpdstatus.currentsong.get('artist'),
+                               mpdstatus.currentsong.get('title'),
+                               mpdstatus.currentsong.get('date'),
+                               mpdstatus.currentsong.get('album') ))
+            
+        title.append(self.cfg['window_title'])
+        
+        if self.paused:
+            title.append(' [Paused]')
+            
+        self.window.set_title(''.join(title))
 
     def update_file_list(self):
         """
@@ -111,12 +128,13 @@ class OmotGtk(object):
             logging.info("Slide show is paused, exiting callback")
             return True
         
-        if not self.update_file_list():
+        if self.update_file_list():
+            # skip to the next picture in list an display it if possible
+            self.change_image()
+        else:
             logging.info("Could not get new file list from mpd, exiting callback")
-            return True
-        
-        # skip to the next picture in list an display it if possible
-        self.change_image()
+
+        self.update_window_title()
         
         return True
 
@@ -166,6 +184,7 @@ class OmotGtk(object):
         
         elif keyname in updaters:
             self.update_file_list() and self.reload_current_image()
+            self.update_window_title()
             
         elif keyname in cache_printers:
             images.print_status()
@@ -183,9 +202,10 @@ class OmotGtk(object):
     def slideshow_pause_toggle(self):
         if not self.paused:
             self.paused = True
-            self.window.set_title(self.cfg['window_title'] + ' [Paused]')
+            self.update_window_title()
             logging.info("Slideshow paused")
         else:
             self.paused = False
-            self.window.set_title(self.cfg['window_title'])
+            self.update_window_title()
             logging.info("Slideshow unpaused")
+
