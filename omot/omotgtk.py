@@ -162,10 +162,10 @@ class OmotGtk(object):
             self.change_image(skippers[keyname])
         
         elif keyname in rotators:
-            self.reload_current_image(0, rotators[keyname])
+            self.reload_current_image(rotators[keyname])
         
         elif keyname in updaters:
-            self.update_file_list() and self.display_next_image(0)
+            self.update_file_list() and self.reload_current_image()
             
         elif keyname in cache_printers:
             images.print_status()
