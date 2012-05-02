@@ -20,7 +20,14 @@ from omot.systools import proc_status
 
 
 class Images(Cache):
-    """ Provides on-demand caching of pixbufs backed by files on disk.
+    """
+    Provides on-demand caching of pixbufs backed by files on disk.
+
+    Holds these attributes:
+    - A list of image files and a pointer to that list
+    - Object cache (from base class):
+      filename path strings are keys, pixbuf objects are values
+    - A list of acceptable image file extensions
     """
     index = 0
     files = []
