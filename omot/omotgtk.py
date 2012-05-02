@@ -24,6 +24,7 @@ class OmotGtk(object):
     - Configuration
     - A GTK+ window
     - A ResizeableImage nested in the window
+    ' Window icon pixbuf
     - Some state attributes (paused, lastdir, fullscreen)
     """
 
@@ -46,7 +47,7 @@ class OmotGtk(object):
         
         self.window = gtk.Window()
         if not self.window.get_screen():
-            sys.exit("Could not set a screen for GtkWindow")
+            sys.exit("No screen to display window on (check if DISPLAY has been set)!")
         
         self.window.connect('destroy', gtk.main_quit)
         self.window.set_title(self.cfg['window_title'])
@@ -54,8 +55,6 @@ class OmotGtk(object):
         
         self.icon = gtk.gdk.pixbuf_new_from_file(find_path('blade-runner-331x331.png')) #.scale_simple(256, 256, gtk.gdk.INTERP_HYPER)
         self.window.set_icon(self.icon) #sonatacd.png
-        
-        self.defaultpixbuf = gtk.gdk.pixbuf_new_from_file(find_path('blade-runner.jpg'))
         
         self.image = resizeable_image.ResizableImage(True, True, gtk.gdk.INTERP_HYPER)
         self.image.set_from_pixbuf(images.getdefault())
