@@ -26,6 +26,8 @@ def infer_covers_dir(relative_file_path):
     >>> infer_covers_dir("Artists/b/Beatles/2009 Remasters Box Set/1968 The Beatles Disc 1 (2009 Stereo Remaster) [FLAC]/16 - I Will.flac")
     'Artists/b/Beatles/2009 Remasters Box Set/1968 The Beatles Disc 1 (2009 Stereo Remaster) [FLAC]'
     """
+    
+    assert relative_file_path
 
     path = relative_file_path.split("/")
     # usual case: parent directory
@@ -38,8 +40,8 @@ def infer_covers_dir(relative_file_path):
     # or
     # Artists/a/Artist Name/collection/2012 Album Name/song
     # descend the path to try to find the album directory
-    if path[0] == 'Artists' and len(path) > 5:
-        for i in range(len(path) - 2, 2, -1):
+    if path[0] in ['Artists', 'Various']:
+        for i in range(len(path) - 2, -1, -1):
             if starts_with_recording_year(path[i]):
                 pathdepth = i + 1
                 break

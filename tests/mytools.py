@@ -31,6 +31,12 @@ class MyToolsTestCase(unittest.TestCase):
         
         self.assertEqual(infer_covers_dir('Artists/b/Beatles/2009 Remasters Box Set/1968 The Beatles Disc 1 (2009 Stereo Remaster) [FLAC]/16 - I Will.flac'),
                                           'Artists/b/Beatles/2009 Remasters Box Set/1968 The Beatles Disc 1 (2009 Stereo Remaster) [FLAC]')
+        
+        self.assertEqual(infer_covers_dir('Artists/b/Beatles/2009 Remasters Box Set/1968 The Beatles Disc 1 (2009 Stereo Remaster) [FLAC]/16 - I Will.flac'),
+                                          'Artists/b/Beatles/2009 Remasters Box Set/1968 The Beatles Disc 1 (2009 Stereo Remaster) [FLAC]')
+        
+        self.assertEqual(infer_covers_dir("Various/1994 Stolen Moments - Red Hot + Cool [compil. hip-hop, funk & jazz] [by WhiteBrotha'] [mp3 Lame 224]/bonus cd/01 Branford Marsalis - A Love Supreme.mp3"),
+                                          "Various/1994 Stolen Moments - Red Hot + Cool [compil. hip-hop, funk & jazz] [by WhiteBrotha'] [mp3 Lame 224]")
                 
 
     def test_starts_with_recording_year(self):
