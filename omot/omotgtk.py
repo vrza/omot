@@ -122,9 +122,11 @@ class OmotGtk(object):
 
     def on_key_press_event(self, unused_widget, event):
 
-        pausers  = { "space" }
+        pausers  = { "space", "P", "p" }
 
         quitters = { "Q", "q", "Escape" }
+        
+        fullscreen_togglers = { "F", "f" }
 
         skippers = {
                      "Page_Up"   : -1,
@@ -137,11 +139,9 @@ class OmotGtk(object):
 
         rotators = { "R" : 90 , "r" : 270 }
         
-        fullscreen_togglers = { "F", "f" }
+        updaters = { "U", "u" }
         
         cache_printers = { "C", "c" }
-        
-        updaters = { "U", "u" }
 
         keyval = event.keyval
         keyname = gtk.gdk.keyval_name(keyval)
@@ -154,6 +154,9 @@ class OmotGtk(object):
             logging.info("Quitting.")
             gtk.main_quit()
             
+        elif keyname in fullscreen_togglers:
+            self.fullscreen_toggle()
+            
         elif keyname in skippers:
             logging.info("Skipping picture [%s]", skippers[keyname])
             self.change_image(skippers[keyname])
@@ -161,14 +164,11 @@ class OmotGtk(object):
         elif keyname in rotators:
             self.reload_current_image(0, rotators[keyname])
         
-        elif keyname in cache_printers:
-            images.print_status()
-        
-        elif keyname in fullscreen_togglers:
-            self.fullscreen_toggle()
-        
         elif keyname in updaters:
             self.update_file_list() and self.display_next_image(0)
+            
+        elif keyname in cache_printers:
+            images.print_status()
 
     def fullscreen_toggle(self):
         if self.fullscreen:
