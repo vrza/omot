@@ -128,7 +128,7 @@ class OmotGtk(object):
 
         pausers  = { "space" }
 
-        quitters = { "Q", "q" }
+        quitters = { "Q", "q", "Escape" }
 
         skippers = {
                      "Page_Up"   : -1,
