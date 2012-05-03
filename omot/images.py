@@ -23,7 +23,7 @@ class Images(Cache):
     """
     Provides on-demand caching of pixbufs backed by files on disk.
 
-    Holds these attributes:
+    Holds these attributes (all private):
     - A list of image files and a pointer to that list
     - Object cache (from base class):
       filename path strings are keys, pixbuf objects are values
@@ -36,11 +36,12 @@ class Images(Cache):
 
     def __init__(self):
         logging.basicConfig(level=logging.DEBUG)
+        
         # get supported image formats from GTK+
-        for fmt in gtk.gdk.pixbuf_get_formats():
-            self.acceptable_image_suffixes += fmt['extensions']
+        self.acceptable_image_suffixes = [ext for fmt in gtk.gdk.pixbuf_get_formats() for ext in fmt['extensions']]
         logging.info("Acceptable extensions: %s", self.acceptable_image_suffixes)
         
+        # default image
         self.defaultpixbuf = gtk.gdk.pixbuf_new_from_file(find_path('blade-runner.jpg'))
 
     def setdefault(self, pixbuf):
