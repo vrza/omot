@@ -78,11 +78,14 @@ class OmotGtk(object):
     def update_window_title(self):
         title = []
         if mpdstatus.playing and mpdstatus.currentsong:
-            title.append("%s: %s [%s %s] - " 
-                           % ( mpdstatus.currentsong.get('artist'),
-                               mpdstatus.currentsong.get('title'),
-                               mpdstatus.currentsong.get('date'),
-                               mpdstatus.currentsong.get('album') ))
+            if mpdstatus.currentsong.get('title') and mpdstatus.currentsong.get('artist'):
+                title.append("%s: %s [%s %s] - " 
+                             % ( mpdstatus.currentsong.get('artist'),
+                                 mpdstatus.currentsong.get('title'),
+                                 mpdstatus.currentsong.get('date'),
+                                 mpdstatus.currentsong.get('album') ))
+            else:
+                title.append("%s - " % mpdstatus.currentsong.get('file'))
             
         title.append(self.cfg['window_title'])
         
