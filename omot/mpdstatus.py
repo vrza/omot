@@ -26,9 +26,10 @@ class MpdStatus(object):
           }
 
     def __init__(self):
-        self.covers_dir = None # string (path to a directory)
-        self._state     = None # string, e.g. 'play'
-        self._client = MPDClient()
+        self.covers_dir  = None # string (path to a directory)
+        self.currentsong = None
+        self._state      = None # string, e.g. 'play'
+        self._client     = MPDClient()
 
         # Parse 'MPD' section of configuration file
         config.parse(self.cfg, config.parser, 'MPD')
