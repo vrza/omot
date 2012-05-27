@@ -4,9 +4,8 @@ and creates an instance of RawConfigParser
 """
 
 import os
-import ConfigParser
 import logging
-
+import ConfigParser
 
 def parse(mem, disk, section):
     """ Update fields defined in hashmap 'mem' from ConfigParser 'disk'
@@ -47,8 +46,7 @@ def parse(mem, disk, section):
 # instantiate parser and read config file
 parser = ConfigParser.RawConfigParser()
 for candidate in ['~/.omotrc', '~/.omot']:
-    with open(os.path.expanduser(candidate), 'rU') as cfgfile:
-        parser.read(cfgfile)
+    if parser.read(os.path.expanduser(candidate)):
         break
 
 
