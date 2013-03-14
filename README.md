@@ -17,6 +17,6 @@ Configuration is read from `~/.omotrc` or `~/.omot`. Example configuration:
     default_height           = 943
 
     [MPD]
-    music_directory          = /var/lib/mpd/music
+    music_dir                = /var/lib/mpd/music
     host                     = 127.0.0.1
     port                     = 6600
