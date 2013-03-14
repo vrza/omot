@@ -40,11 +40,14 @@ def infer_covers_dir(relative_file_path):
     # or
     # Artists/a/Artist Name/collection/2012 Album Name/song
     # descend the path to try to find the album directory
-    if path[0] in ['Artists', 'Various']:
+    if path[0] in ['Artists']:
         for i in xrange(len(path) - 2, -1, -1):
             if starts_with_recording_year(path[i]):
                 pathdepth = i + 1
                 break
+            
+    if path[0] in ['Various', 'Composers']:
+        pathdepth = 3
 
     covers_dir = ""
     # Append part of the relative file path
