@@ -107,14 +107,17 @@ class Images(Cache):
     def add_from(self, location, recursive = True):
         for filename in self.find_image_files(location, recursive):
             self.files.append(filename)
+            
+    def get_next_pixbuf(self, skip = 1, rotation = 0):
+        if self.files:
+            self.index = (self.index + skip) % len(self.files)
+        return self.get_current_pixbuf(rotation)     
     
-    def get_pixbuf(self, skip = 1, rotation = 0):
+    def get_current_pixbuf(self, rotation = 0):
         if not self.files:
             if rotation:
                 self.defaultpixbuf = self.defaultpixbuf.rotate_simple(rotation)
             return self.defaultpixbuf
-        
-        self.index = (self.index + skip) % len(self.files)
         
         filename = self.files[self.index]
         logging.info("Trying to get [%d] %s", self.index, filename)
@@ -138,11 +141,23 @@ class Images(Cache):
             pixbuf = pixbuf.rotate_simple(rotation)
         
         if rotation or not cache_hit:
+            # store new pixmap in the cache
             self.put(filename, pixbuf)
             logging.info("Image cache has %i pixbufs", self.size)
+            
+            # also update its thumb
+            logging.info("Creating icon...")
+            start = time.time()
+            self.put("t_" + filename, pixbuf.scale_simple(64, 64, gtk.gdk.INTERP_NEAREST))
+            logging.info("Generated icon in %s seconds", time.time() - start)
         
         # give ResizableImage instance a new pixbuf to display
         return pixbuf
+
+    def get_current_thumbnail(self):
+        if not self.files:
+            return self.defaultpixbuf
+        return self.get("t_" + self.files[self.index])
 
     def print_status(self):
         super(Images, self).print_keys()

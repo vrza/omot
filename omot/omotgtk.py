@@ -5,6 +5,7 @@ MPD client to display a slide show of images from the song's directory
 
 import sys
 import logging
+import time
 import pygtk
 pygtk.require('2.0')
 import gtk
@@ -111,20 +112,22 @@ class OmotGtk(object):
         else:
             logging.info("init: Player stopped or not running")
             return False
-        
+    
     def reload_current_image(self, rotation = 0):
-        self.image.set_from_pixbuf(images.get_pixbuf(0, rotation))
+        pixbuf = images.get_current_pixbuf(rotation)
+        self.image.set_from_pixbuf(pixbuf)
+        self.window.set_icon(images.get_current_thumbnail())
 
     def change_image(self, skip = 1):
         # give ResizableImage instance a new pixbuf to display
-        self.image.set_from_pixbuf(images.get_pixbuf(skip))
+        pixbuf = images.get_next_pixbuf(skip)
+        self.image.set_from_pixbuf(pixbuf)
+        self.window.set_icon(pixbuf)
+        self.window.set_icon(images.get_current_thumbnail())
         
-        # Update window icon
-        #self.window.set_icon(pixbuf.scale_simple(512, 512, gtk.gdk.INTERP_HYPER))
-
     def on_tick(self):
-        #returning False from on_tick will destroy the timeout
-        #and stop calling on_tick
+        # returning False from on_tick will destroy the timeout
+        # and stop calling on_tick
         logging.info("entering on_tick callback")
         
         if self.paused:
