@@ -46,9 +46,6 @@ def infer_covers_dir(relative_file_path):
                 pathdepth = i + 1
                 break
             
-    if path[0] in ['Various', 'Composers']:
-        pathdepth = 3
-
     covers_dir = ""
     # Append part of the relative file path
     for path_component in path[0:pathdepth]:
