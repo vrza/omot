@@ -109,11 +109,11 @@ class OmotGtk(object):
                     images.clear()
                 self.lastdir = mpdstatus.covers_dir
             
-            logging.info("Updating file list from %s", mpdstatus.covers_dir)
+            logging.debug("Updating file list from %s", mpdstatus.covers_dir)
             images.reset_from(mpdstatus.covers_dir)
             return True
         else:
-            logging.info("init: Player stopped or not running")
+            logging.debug("init: Player stopped or not running")
             return False
     
     def reload_current_image(self, rotation = 0):
@@ -131,24 +131,24 @@ class OmotGtk(object):
     def on_tick(self):
         # returning False from on_tick will destroy the timeout
         # and stop calling on_tick
-        logging.info("entering on_tick callback.")
+        logging.debug("entering on_tick callback.")
 
         if self.paused:
-            logging.info("Slide show is paused, exiting callback")
+            logging.debug("Slide show is paused, exiting callback")
             return True
 
-        logging.info("acquring mutex lock...")
+        logging.debug("acquring mutex lock...")
         self.mutex.acquire()
         
         if self.update_file_list():
             # skip to the next picture in list an display it if possible
             self.change_image()
         else:
-            logging.info("Could not get new file list from mpd, exiting callback")
+            logging.debug("Could not get new file list from mpd, exiting callback")
 
         self.update_window_title()
 
-        logging.info("exiting on_tick callback. releasing mutex lock...")
+        logging.debug("exiting on_tick callback. releasing mutex lock...")
         self.mutex.release()
         return True
 
