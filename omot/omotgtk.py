@@ -11,6 +11,8 @@ pygtk.require('2.0')
 import gtk
 import glib
 
+from threading import Lock
+
 from omot import resizeable_image
 from omot import config
 from omot.mpdstatus import mpdstatus
@@ -25,7 +27,7 @@ class OmotGtk(object):
     - Configuration
     - A GTK+ window
     - A ResizeableImage nested in the window
-    ' Window icon pixbuf
+    - Window icon pixbuf
     - Some state attributes (paused, lastdir, fullscreen)
     """
 
@@ -40,6 +42,7 @@ class OmotGtk(object):
     paused = False
     lastdir = ""
     fullscreen = False
+    mutex = Lock()
 
     def __init__(self):
         logging.basicConfig(level=logging.DEBUG)
@@ -128,11 +131,14 @@ class OmotGtk(object):
     def on_tick(self):
         # returning False from on_tick will destroy the timeout
         # and stop calling on_tick
-        logging.info("entering on_tick callback")
-        
+        logging.info("entering on_tick callback.")
+
         if self.paused:
             logging.info("Slide show is paused, exiting callback")
             return True
+
+        logging.info("acquring mutex lock...")
+        self.mutex.acquire()
         
         if self.update_file_list():
             # skip to the next picture in list an display it if possible
@@ -141,10 +147,13 @@ class OmotGtk(object):
             logging.info("Could not get new file list from mpd, exiting callback")
 
         self.update_window_title()
-        
+
+        logging.info("exiting on_tick callback. releasing mutex lock...")
+        self.mutex.release()
         return True
 
     def on_key_press_event(self, unused_widget, event):
+        self.mutex.acquire()
 
         pausers  = { "space", "P", "p" }
 
@@ -194,6 +203,9 @@ class OmotGtk(object):
             
         elif keyname in cache_printers:
             images.print_status()
+
+        self.mutex.release()
+        return True
 
     def fullscreen_toggle(self):
         if self.fullscreen:
