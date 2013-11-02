@@ -165,12 +165,15 @@ class OmotGtk(object):
                      "Page_Up"   : -1,
                      "Left"      : -1,
                      "Up"        : -1,
+                     "k"         : -1,
                      "Page_Down" :  1,
                      "Right"     :  1,
-                     "Down"      :  1
+                     "Down"      :  1,
+                     "j"         :  1
                    } 
 
-        rotators = { "R" : 90 , "r" : 270 }
+        rotators = { "R" : 90, "r" : 270,
+                     "h" : 90, "l" : 270 }
         
         updaters = { "U", "u" }
         
