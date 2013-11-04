@@ -7,7 +7,7 @@ import os
 import logging
 import time
 
-from mpd import MPDClient, CommandError
+from mpd import MPDClient, CommandError, ConnectionError
 from socket import error as SocketError
 
 from omot import config
@@ -29,7 +29,8 @@ class MpdStatus(object):
         self.covers_dir  = None # string (path to a directory)
         self.currentsong = None
         self._state      = None # string, e.g. 'play'
-        self._client     = MPDClient()
+        self._client     = MPDClient(use_unicode=True)
+        self._connected  = False
 
         # Parse 'MPD' section of configuration file
         config.parse(self.cfg, config.parser, 'MPD')
@@ -58,17 +59,30 @@ class MpdStatus(object):
                 self._client.disconnect()
                 return False
 
+        self._connected = True
         return
 
     def disconnect(self):
         self._client.close()
         self._client.disconnect()
+        self._connected = False
         return
 
     def update(self):
         start = time.time()
+        if not self._connected:
+            # reconnect or bust
+            if not self.connect():
+                return False
+
         # update playing state
-        self._state = self._client.status().get('state')
+        try:
+            logging.info("Inside try block.")
+            self._state = self._client.status().get('state')
+        except ConnectionError:
+            logging.error("Connection error.")
+            self._connected = False
+            return False
 
         # get current song path and infer covers dir from it
         self.currentsong = self._client.currentsong()
