@@ -202,7 +202,7 @@ class OmotGtk(object):
 
         keyval = event.keyval
         keyname = gtk.gdk.keyval_name(keyval)
-        logging.info("Key %s (%d) was pressed", keyname, keyval)
+        logging.debug("Key %s (%d) was pressed", keyname, keyval)
 
         if keyname in pausers:
             self.slideshow_pause_toggle()
@@ -216,7 +216,7 @@ class OmotGtk(object):
             self.fullscreen_toggle()
             
         elif keyname in skippers:
-            logging.info("Skipping picture [%s]", skippers[keyname])
+            logging.debug("Skipping picture [%s]", skippers[keyname])
             self.change_image(skippers[keyname])
         
         elif keyname in rotators:

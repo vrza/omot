@@ -39,11 +39,12 @@ class MpdStatus(object):
         """
         Try to connect to mpd
         """
-        logging.info('Trying to connect to mpd at %s:%s...',
+        logging.debug('Trying to connect to mpd at %s:%s...',
                      self.cfg['host'], self.cfg['port'])
         start = time.time()
         if self._mpd_connect(self.cfg['host'], self.cfg['port']):
-            logging.info('Connected to mpd!')
+            logging.info('Connected to mpd at %s:%s!',
+                         self.cfg['host'], self.cfg['port'])
         else:
             logging.error("Failed to connect to mpd! [after %s seconds]",
                           str(time.time() - start) )
@@ -77,7 +78,6 @@ class MpdStatus(object):
 
         # update playing state
         try:
-            logging.info("Inside try block.")
             self._state = self._client.status().get('state')
         except ConnectionError:
             logging.error("Connection error.")
