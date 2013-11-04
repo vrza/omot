@@ -5,13 +5,12 @@ MPD client to display a slide show of images from the song's directory
 
 import sys
 import logging
-import time
 import pygtk
 pygtk.require('2.0')
 import gtk
 import glib
 
-from threading import Lock
+from threading import Event, Lock
 
 from omot import resizeable_image
 from omot import config
@@ -43,6 +42,8 @@ class OmotGtk(object):
     lastdir = ""
     fullscreen = False
     mutex = Lock()
+    keypress_lock = Event()
+    respawn_on_tick = Event()
 
     def __init__(self):
         logging.basicConfig(level=logging.DEBUG)
@@ -76,7 +77,7 @@ class OmotGtk(object):
         # connect callbacks
         glib.timeout_add_seconds(self.cfg['seconds_between_pictures'], self.on_tick)
         self.window.connect('key_press_event', self.on_key_press_event)
-        
+
         self.reload_current_image()
     
     def update_window_title(self):
@@ -95,6 +96,8 @@ class OmotGtk(object):
         
         if self.paused:
             title.append(' [Paused]')
+        else:
+            title.append(" [%ds]" % self.cfg["seconds_between_pictures"])
             
         self.window.set_title(''.join(title))
 
@@ -127,33 +130,46 @@ class OmotGtk(object):
         self.image.set_from_pixbuf(pixbuf)
         self.window.set_icon(pixbuf)
         self.window.set_icon(images.get_current_thumbnail())
-        
+
+
     def on_tick(self):
         # returning False from on_tick will destroy the timeout
         # and stop calling on_tick
         logging.debug("entering on_tick callback.")
+        again = True
 
         if self.paused:
             logging.debug("Slide show is paused, exiting callback")
-            return True
+            return again
+
+        if self.keypress_lock.is_set():
+            logging.debug("Keypress handler is running, exiting callback!")
+            return again
 
         logging.debug("acquring mutex lock...")
         self.mutex.acquire()
-        
+
         if self.update_file_list():
             # skip to the next picture in list an display it if possible
             self.change_image()
         else:
             logging.debug("Could not get new file list from mpd, exiting callback")
 
-        self.update_window_title()
+        if self.respawn_on_tick.is_set():
+             logging.debug("Spawning new on_tick callback [%ds]" % self.cfg['seconds_between_pictures'])
+             glib.timeout_add_seconds(self.cfg['seconds_between_pictures'], self.on_tick)
+             again = False
+             logging.debug("Callback will be destroyed on exit.")
+             self.respawn_on_tick.clear()
 
+        self.update_window_title()
         logging.debug("exiting on_tick callback. releasing mutex lock...")
         self.mutex.release()
-        return True
+        return again
 
     def on_key_press_event(self, unused_widget, event):
         self.mutex.acquire()
+        self.keypress_lock.set()
 
         pausers  = { "space", "P", "p" }
 
@@ -178,6 +194,9 @@ class OmotGtk(object):
         updaters = { "U", "u" }
         
         cache_printers = { "C", "c" }
+
+        delay_modifiers = { "plus": 1, "KP_Add": 1,
+                            "minus": -1, "KP_Subtract": -1 }
 
         keyval = event.keyval
         keyname = gtk.gdk.keyval_name(keyval)
@@ -207,6 +226,13 @@ class OmotGtk(object):
         elif keyname in cache_printers:
             images.print_status()
 
+        elif keyname in delay_modifiers:
+            logging.debug("Delay: %d" % self.cfg['seconds_between_pictures'])
+            self.cfg['seconds_between_pictures'] += delay_modifiers[keyname]
+            self.respawn_on_tick.set() # respawn on_tick on next call with new delay
+            self.update_window_title() # show new delay setting to user immediately
+
+        self.keypress_lock.clear()
         self.mutex.release()
         return True
 
