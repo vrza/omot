@@ -33,16 +33,14 @@ class MpdStatus(object):
 
         # Parse 'MPD' section of configuration file
         config.parse(self.cfg, config.parser, 'MPD')
-        
-    def update(self):
-        """
-        Try to connect to mpd to update playing state and covers_dir
-        """
 
+    def connect(self):
+        """
+        Try to connect to mpd
+        """
         logging.info('Trying to connect to mpd at %s:%s...',
                      self.cfg['host'], self.cfg['port'])
         start = time.time()
-
         if self._mpd_connect(self.cfg['host'], self.cfg['port']):
             logging.info('Connected to mpd!')
         else:
@@ -60,24 +58,33 @@ class MpdStatus(object):
                 self._client.disconnect()
                 return False
 
-        # update playing state 
+        return
+
+    def disconnect(self):
+        self._client.close()
+        self._client.disconnect()
+        return
+
+    def update(self):
+        start = time.time()
+        # update playing state
         self._state = self._client.status().get('state')
 
+        # get current song path and infer covers dir from it
         self.currentsong = self._client.currentsong()
         currentfile = self.currentsong.get('file')
         if self.currentsong and currentfile:
             # infer absolute covers directory path
-            logging.info("Currently playing: %s", currentfile)
+            logging.debug("Currently playing: %s", currentfile)
             covers_dir_relative = infer_covers_dir(currentfile)
-            logging.info("Guessing covers dir: %s", covers_dir_relative)
-            self.covers_dir = os.path.join(self.cfg['music_dir'], 
+            logging.debug("Guessing covers dir: %s", covers_dir_relative)
+            self.covers_dir = os.path.join(self.cfg['music_dir'],
                                            covers_dir_relative)
         else:
             self.covers_dir = None
 
-        logging.info("mpd status update took %s seconds",
+        logging.debug("mpd status update took %s seconds",
                      str(time.time() - start))
-        self._client.disconnect()
         return self.covers_dir is not None
 
     @property

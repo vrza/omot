@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-MPD client to display a slide show of images from the song's directory
+MPD client that displays a slide show of images from the song's directory
 """
 
 import sys
@@ -64,6 +64,8 @@ class OmotGtk(object):
         self.image.set_from_pixbuf(images.getdefault())
         self.image.show()
         self.window.add(self.image)
+
+        mpdstatus.connect()
         
         self.update_file_list()
         
@@ -207,6 +209,7 @@ class OmotGtk(object):
         
         elif keyname in quitters:
             logging.info("Quitting.")
+            mpdstatus.disconnect()
             gtk.main_quit()
             
         elif keyname in fullscreen_togglers:
