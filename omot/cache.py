@@ -40,7 +40,7 @@ class Cache(object):
         self.cache.clear()
         
     def print_keys(self):
-        print "Cache [%s]: {" % str(len(self.cache))
+        print("Cache [%s]: {" % str(len(self.cache)))
         for key in self.cache:
-            print "    %s" % key
-        print "}"
+            print("    %s" % key)
+        print("}")
