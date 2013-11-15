@@ -6,8 +6,6 @@ Created on May 2, 2012
 import os
 import time
 
-import logging
-
 import pygtk
 pygtk.require('2.0')
 import gtk
@@ -17,6 +15,9 @@ import gc
 from omot.cache import Cache
 from omot.systools import find_path
 from omot.systools import proc_status
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class Images(Cache):
@@ -31,14 +32,12 @@ class Images(Cache):
     """
 
     def __init__(self):
-        logging.basicConfig(level=logging.DEBUG)
-
         self.files = []
         self.index = 0
 
         # get supported image formats from GTK+
         self.acceptable_image_suffixes = [ext for fmt in gtk.gdk.pixbuf_get_formats() for ext in fmt['extensions']]
-        logging.debug("Acceptable extensions: %s", self.acceptable_image_suffixes)
+        logger.debug("Acceptable extensions: %s", self.acceptable_image_suffixes)
         
         # default image
         self.defaultpixbuf = gtk.gdk.pixbuf_new_from_file(find_path('blade-runner.jpg'))
@@ -51,15 +50,15 @@ class Images(Cache):
 
     def clear(self):
         prevrss = int(proc_status('VmRSS')[0])
-        logging.debug("Clearing object cache: %s", self.cache)
+        logger.debug("Clearing object cache: %s", self.cache)
         super(Images, self).clear()
-        logging.debug("Running garbage collection...")
+        logger.debug("Running garbage collection...")
         start = time.time()
         gc.collect()
-        logging.debug("Garbage collection took %s seconds", time.time() - start)
-        logging.debug("Resource usage before: %d kB", prevrss)
-        logging.debug("Resource usage after: %s kB", proc_status('VmRSS')[0])
-        logging.debug("Freed %d kB of resident memory", prevrss - int(proc_status('VmRSS')[0]))
+        logger.debug("Garbage collection took %s seconds", time.time() - start)
+        logger.debug("Resource usage before: %d kB", prevrss)
+        logger.debug("Resource usage after: %s kB", proc_status('VmRSS')[0])
+        logger.debug("Freed %d kB of resident memory", prevrss - int(proc_status('VmRSS')[0]))
 
     def is_readable_image(self, filename):
         """
@@ -67,7 +66,7 @@ class Images(Cache):
         that file's extension is listed in self.acceptable_image_suffixes
         """
         if not os.path.isfile(filename):
-            logging.error("Is not file: %s", filename)
+            logger.error("Is not file: %s", filename)
             return False
         
         for suffix in self.acceptable_image_suffixes:
@@ -82,10 +81,10 @@ class Images(Cache):
         reinitializes self.files list
         """
         file_list = []
-        logging.debug("Looking for image file_entries in: %s", location)
+        logger.debug("Looking for image file_entries in: %s", location)
         start = time.time()
         if recursive:
-            for directory, unused_subdir_entries, file_entries in os.walk(location):
+            for directory, unused_subdir_entries, file_entries in os.walk(location, True, None, True):
                 for filename in file_entries:
                     filepath = os.path.join(directory, filename)
                     if self.is_readable_image(filepath):
@@ -96,7 +95,7 @@ class Images(Cache):
                 if self.is_readable_image(filepath):
                     file_list.append(filepath)
 
-        logging.debug("Found %d images in %s seconds: %s", len(file_list), time.time() - start, str(file_list))
+        logger.debug("Found %d images in %s seconds: %s", len(file_list), time.time() - start, str(file_list))
         return file_list
     
     def reset_from(self, location, recursive = True):
@@ -118,36 +117,36 @@ class Images(Cache):
             return self.defaultpixbuf
         
         filename = self.files[self.index]
-        logging.debug("Trying to get [%d] %s", self.index, filename)
+        logger.debug("Trying to get [%d] %s", self.index, filename)
         
         assert self.is_readable_image(filename)
         
         # check cache
         cache_hit = self.has(filename)
         if cache_hit:
-            logging.debug("Image cache hit :o)")
+            logger.debug("Image cache hit :o)")
             pixbuf = self.get(filename)
         else:
-            logging.debug("Image cache miss, loading image from disk...")
+            logger.debug("Image cache miss, loading image from disk...")
             start = time.time()
             pixbuf = gtk.gdk.pixbuf_new_from_file(filename)
-            logging.debug("Loaded image in %s seconds", time.time() - start)
+            logger.debug("Loaded image in %s seconds", time.time() - start)
         
         # apply rotation (optional)
         if rotation:
-            logging.debug("Rotating by %d degrees (ccw): %s...", rotation, filename)
+            logger.debug("Rotating by %d degrees (ccw): %s...", rotation, filename)
             pixbuf = pixbuf.rotate_simple(rotation)
         
         if rotation or not cache_hit:
             # store new pixmap in the cache
             self.put(filename, pixbuf)
-            logging.debug("Image cache has %i pixbufs", self.size)
+            logger.debug("Image cache has %i pixbufs", self.size)
             
             # also update its thumb
-            logging.info("Creating icon...")
+            logger.debug("Creating icon...")
             start = time.time()
             self.put("t_" + filename, pixbuf.scale_simple(64, 64, gtk.gdk.INTERP_NEAREST))
-            logging.debug("Generated icon in %s seconds", time.time() - start)
+            logger.debug("Generated icon in %s seconds", time.time() - start)
         
         # give ResizableImage instance a new pixbuf to display
         return pixbuf
@@ -159,7 +158,7 @@ class Images(Cache):
 
     def print_status(self):
         super(Images, self).print_keys()
-        logging.info( "RSS: %s", proc_status('VmRSS'))
+        logger.info( "RSS: %s", proc_status('VmRSS'))
 
 
 # instantiate
