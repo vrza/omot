@@ -4,7 +4,6 @@ mpd status info, and methods for fetching that status info from mpd
 """
 
 import os
-import logging
 import time
 
 from mpd import MPDClient, CommandError, ConnectionError
@@ -13,16 +12,20 @@ from socket import error as SocketError
 from omot import config
 from omot.mytools import infer_covers_dir
 
+import logging
+logger = logging.getLogger(__name__)
+
+
 class MpdStatus(object):
     """
     Holds information about status of mpd, 
     uses a MPDClient instance to update itself
     """
     
-    cfg = { 'host'      : 'localhost',
-            'port'      : '6600',
-            'music_dir' : '/var/lib/mpd/music/',
-            'password'  : ''
+    cfg = { 'host'            : 'localhost',
+            'port'            : '6600',
+            'music_directory' : '/var/lib/mpd/music/',
+            'password'        : ''
           }
 
     def __init__(self):
@@ -33,28 +36,28 @@ class MpdStatus(object):
         self._connected  = False
 
         # Parse 'MPD' section of configuration file
-        config.parse(self.cfg, config.parser, 'MPD')
+        config.parse(self.cfg, config.file_parser, 'MPD')
 
     def connect(self):
         """
         Try to connect to mpd
         """
-        logging.debug('Trying to connect to mpd at %s:%s...',
+        logger.debug('Trying to connect to mpd at %s:%s...',
                      self.cfg['host'], self.cfg['port'])
         start = time.time()
         if self._mpd_connect(self.cfg['host'], self.cfg['port']):
-            logging.info('Connected to mpd at %s:%s!',
+            logger.info('Connected to mpd at %s:%s!',
                          self.cfg['host'], self.cfg['port'])
         else:
-            logging.error("Failed to connect to mpd! [after %s seconds]",
+            logger.error("Failed to connect to mpd! [after %s seconds]",
                           str(time.time() - start) )
             return False
 
         if self.cfg['password']:
             if self._mpd_auth(self.cfg['password']):
-                logging.info('Pass auth!')
+                logger.info('Pass auth!')
             else:
-                logging.error(
+                logger.error(
                     "Error trying to pass auth. [after %s seconds]",
                     str(time.time() - start))
                 self._client.disconnect()
@@ -77,10 +80,11 @@ class MpdStatus(object):
                 return False
 
         # update playing state
+        # TODO: connection could still be broken
         try:
             self._state = self._client.status().get('state')
         except ConnectionError:
-            logging.error("Connection error.")
+            logger.error("Connection error.")
             self._connected = False
             return False
 
@@ -89,15 +93,15 @@ class MpdStatus(object):
         currentfile = self.currentsong.get('file')
         if self.currentsong and currentfile:
             # infer absolute covers directory path
-            logging.debug("Currently playing: %s", currentfile)
+            logger.debug("Currently playing: %s", currentfile)
             covers_dir_relative = infer_covers_dir(currentfile)
-            logging.debug("Guessing covers dir: %s", covers_dir_relative)
-            self.covers_dir = os.path.join(self.cfg['music_dir'],
+            logger.debug("Guessing covers dir: %s", covers_dir_relative)
+            self.covers_dir = os.path.join(self.cfg['music_directory'],
                                            covers_dir_relative)
         else:
             self.covers_dir = None
 
-        logging.debug("mpd status update took %s seconds",
+        logger.debug("mpd status update took %s seconds",
                      str(time.time() - start))
         return self.covers_dir is not None
 
