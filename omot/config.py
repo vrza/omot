@@ -4,8 +4,11 @@ and creates an instance of RawConfigParser
 """
 
 import os
-import logging
 import ConfigParser
+from optparse import OptionParser
+import logging
+logger = logging.getLogger(__name__)
+
 
 def parse(mem, disk, section):
     """ Update fields defined in hashmap 'mem' from ConfigParser 'disk'
@@ -37,18 +40,24 @@ def parse(mem, disk, section):
                 elif isinstance(mem[key], str):
                     mem[key] = disk.get(section, key)
             except ValueError:
-                logging.error("Bad value in %s section: %s, should be of %s", 
-                              section, key, type(mem[key]))
-    
+                logger.error("Bad value in %s section: %s, should be of %s",
+                             section, key, type(mem[key]))
+
     return mem
 
 
 # instantiate parser and read config file
-parser = ConfigParser.RawConfigParser()
+file_parser = ConfigParser.RawConfigParser()
 for candidate in ['~/.omotrc', '~/.omot']:
-    if parser.read(os.path.expanduser(candidate)):
+    if file_parser.read(os.path.expanduser(candidate)):
         break
 
+args_parser = OptionParser()
+args_parser.add_option("-v", "--verbose",
+                       action="store_true", dest="verbose", default=False,
+                       help="print detailed messages")
+
+(options, args) = args_parser.parse_args()
 
 # Configuration file writing example:
 # >>> config.add_section('Display')
