@@ -18,6 +18,6 @@ Example configuration file:
     default_height           = 943
 
     [MPD]
-    music_dir                = /var/lib/mpd/music
+    music_directory          = /var/lib/mpd/music
     host                     = 127.0.0.1
     port                     = 6600
