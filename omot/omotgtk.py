@@ -4,7 +4,6 @@ MPD client that displays a slide show of images from the song's directory
 """
 
 import sys
-import logging
 import pygtk
 pygtk.require('2.0')
 import gtk
@@ -18,6 +17,9 @@ from omot.mpdstatus import mpdstatus
 from omot.systools import find_path
 
 from omot.images import images
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class OmotGtk(object):
@@ -46,9 +48,7 @@ class OmotGtk(object):
     respawn_on_tick = Event()
 
     def __init__(self):
-        logging.basicConfig(level=logging.DEBUG)
-        
-        config.parse(self.cfg, config.parser, 'Display')
+        config.parse(self.cfg, config.file_parser, 'Display')
         
         self.window = gtk.Window()
         if not self.window.get_screen():
@@ -114,11 +114,11 @@ class OmotGtk(object):
                     images.clear()
                 self.lastdir = mpdstatus.covers_dir
             
-            logging.debug("Updating file list from %s", mpdstatus.covers_dir)
+            logger.debug("Updating file list from %s", mpdstatus.covers_dir)
             images.reset_from(mpdstatus.covers_dir)
             return True
         else:
-            logging.debug("init: Player stopped or not running")
+            logger.debug("init: Player stopped or not running")
             return False
     
     def reload_current_image(self, rotation = 0):
@@ -137,35 +137,35 @@ class OmotGtk(object):
     def on_tick(self):
         # returning False from on_tick will destroy the timeout
         # and stop calling on_tick
-        logging.debug("entering on_tick callback.")
+        logger.debug("entering on_tick callback.")
         again = True
 
         if self.paused:
-            logging.debug("Slide show is paused, exiting callback")
+            logger.debug("Slide show is paused, exiting callback")
             return again
 
         if self.keypress_lock.is_set():
-            logging.debug("Keypress handler is running, exiting callback!")
+            logger.debug("Keypress handler is running, exiting callback!")
             return again
 
-        logging.debug("acquring mutex lock...")
+        logger.debug("acquring mutex lock...")
         self.mutex.acquire()
 
         if self.update_file_list():
             # skip to the next picture in list an display it if possible
             self.change_image()
         else:
-            logging.debug("Could not get new file list from mpd, exiting callback")
+            logger.debug("Could not get new file list from mpd, exiting callback")
 
         if self.respawn_on_tick.is_set():
-             logging.debug("Spawning new on_tick callback [%ds]" % self.cfg['seconds_between_pictures'])
+             logger.debug("Spawning new on_tick callback [%ds]" % self.cfg['seconds_between_pictures'])
              glib.timeout_add_seconds(self.cfg['seconds_between_pictures'], self.on_tick)
              again = False
-             logging.debug("Callback will be destroyed on exit.")
+             logger.debug("Callback will be destroyed on exit.")
              self.respawn_on_tick.clear()
 
         self.update_window_title()
-        logging.debug("exiting on_tick callback. releasing mutex lock...")
+        logger.debug("exiting on_tick callback. releasing mutex lock...")
         self.mutex.release()
         return again
 
@@ -202,13 +202,13 @@ class OmotGtk(object):
 
         keyval = event.keyval
         keyname = gtk.gdk.keyval_name(keyval)
-        logging.debug("Key %s (%d) was pressed", keyname, keyval)
+        logger.debug("Key %s (%d) was pressed", keyname, keyval)
 
         if keyname in pausers:
             self.slideshow_pause_toggle()
         
         elif keyname in quitters:
-            logging.info("Quitting.")
+            logger.info("Quitting.")
             mpdstatus.disconnect()
             gtk.main_quit()
             
@@ -216,7 +216,7 @@ class OmotGtk(object):
             self.fullscreen_toggle()
             
         elif keyname in skippers:
-            logging.debug("Skipping picture [%s]", skippers[keyname])
+            logger.debug("Skipping picture [%s]", skippers[keyname])
             self.change_image(skippers[keyname])
         
         elif keyname in rotators:
@@ -230,8 +230,11 @@ class OmotGtk(object):
             images.print_status()
 
         elif keyname in delay_modifiers:
-            logging.debug("Delay: %d" % self.cfg['seconds_between_pictures'])
-            self.cfg['seconds_between_pictures'] += delay_modifiers[keyname]
+            logger.debug("Delay: %d" % self.cfg['seconds_between_pictures'])
+            if self.cfg['seconds_between_pictures'] + delay_modifiers[keyname] < 1:
+                self.cfg['seconds_between_pictures'] = 1
+            else:
+                self.cfg['seconds_between_pictures'] += delay_modifiers[keyname]
             self.respawn_on_tick.set() # respawn on_tick on next call with new delay
             self.update_window_title() # show new delay setting to user immediately
 
@@ -241,11 +244,11 @@ class OmotGtk(object):
 
     def fullscreen_toggle(self):
         if self.fullscreen:
-            logging.info("Exiting fullscreen")
+            logger.info("Exiting fullscreen")
             self.window.unfullscreen()
             self.fullscreen = False
         else:
-            logging.info("Going fullscreen")
+            logger.info("Going fullscreen")
             self.window.fullscreen()
             self.fullscreen = True
 
@@ -253,9 +256,9 @@ class OmotGtk(object):
         if not self.paused:
             self.paused = True
             self.update_window_title()
-            logging.info("Slideshow paused")
+            logger.info("Slideshow paused")
         else:
             self.paused = False
             self.update_window_title()
-            logging.info("Slideshow unpaused")
+            logger.info("Slideshow unpaused")
 
